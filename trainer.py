@@ -24,18 +24,20 @@ def _train(args):
 
     if args["logger"] == "wandb":
         logger = WandbLogger(args)
-    else:
+    elif args["logger"] == "basic":
         logger = BasicLogger(args)
+    else:
+        raise ValueError("Invalid logger type.")
 
     logger.print_args()
 
     data_manager = DataManager(
-        args["dataset"],
-        args["shuffle"],
-        args["seed"],
-        args["init_cls"],
-        args["increment"],
-        args,
+        dataset_name=args["dataset"],
+        shuffle=args["shuffle"],
+        seed=args["seed"],
+        init_cls=args["init_cls"],
+        increment=args["increment"],
+        args=args,
     )
 
     args["nb_classes"] = data_manager.nb_classes  # update args

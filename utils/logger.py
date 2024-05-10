@@ -52,8 +52,15 @@ class BasicLogger(Logger):
         )
 
     def log(self, data):
-        logging.info("")
-        pass
+        logging.info(f"Class: {data['class']}")
+        logging.info(f"CNN Top1: {data['cnn_top1']}")
+        logging.info(f"CNN Top5: {data['cnn_top5']}")
+        logging.info(f"CNN Average Accuracy: {data['cnn_average_acc']}")
+
+        if "nme_top1" in data.keys:
+            logging.info(f"NME Top1: {data['nme_top1']}")
+            logging.info(f"NME Top5: {data['nme_top5']}")
+            logging.info(f"NME Average Accuracy: {data['nme_average_acc']}")
 
     def info(self, message):
         logging.info(message)

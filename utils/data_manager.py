@@ -232,29 +232,29 @@ def _map_new_class_index(y, order):
 
 
 def _get_idata(dataset_name, args=None):
-    name = dataset_name.lower()
+    name = dataset_name.lower(args)
     if name == "cifar10":
-        return iCIFAR10()
+        return iCIFAR10(args)
     elif name == "cifar100":
-        return iCIFAR100()
+        return iCIFAR100(args)
     elif name == "imagenet1000":
-        return iImageNet1000()
+        return iImageNet1000(args)
     elif name == "imagenet100":
-        return iImageNet100()
+        return iImageNet100(args)
     elif name == "cifar224":
         return iCIFAR224(args)
     elif name == "imagenetr":
         return iImageNetR(args)
     elif name == "imageneta":
-        return iImageNetA()
+        return iImageNetA(args)
     elif name == "cub":
-        return CUB()
+        return CUB(args)
     elif name == "objectnet":
-        return objectnet()
+        return objectnet(args)
     elif name == "omnibenchmark":
-        return omnibenchmark()
+        return omnibenchmark(args)
     elif name == "vtab":
-        return vtab()
+        return vtab(args)
 
     else:
         raise NotImplementedError("Unknown dataset {}.".format(dataset_name))
