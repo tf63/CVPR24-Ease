@@ -2,3 +2,6 @@
 # wandb==0.16.6
 # click==8.1.7
 timm==0.6.12
+pyproject-flake8==7.0.0
+autopep8==2.1.0
+isort==5.13.2

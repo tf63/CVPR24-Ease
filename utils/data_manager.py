@@ -1,9 +1,23 @@
 import logging
+
 import numpy as np
 from PIL import Image
 from torch.utils.data import Dataset
 from torchvision import transforms
-from utils.data import iCIFAR10, iCIFAR100, iImageNet100, iImageNet1000, iCIFAR224, iImageNetR,iImageNetA,CUB, objectnet, omnibenchmark, vtab
+
+from utils.data import (
+    CUB,
+    iCIFAR10,
+    iCIFAR100,
+    iCIFAR224,
+    iImageNet100,
+    iImageNet1000,
+    iImageNetA,
+    iImageNetR,
+    objectnet,
+    omnibenchmark,
+    vtab,
+)
 
 
 class DataManager(object):
@@ -18,7 +32,7 @@ class DataManager(object):
         offset = len(self._class_order) - sum(self._increments)
         if offset > 0:
             self._increments.append(offset)
-            
+
     @property
     def nb_tasks(self):
         return len(self._increments)
@@ -121,7 +135,8 @@ class DataManager(object):
                 val_indx = np.random.choice(
                     len(append_data), val_samples_per_class, replace=False
                 )
-                train_indx = list(set(np.arange(len(append_data))) - set(val_indx))
+                train_indx = list(
+                    set(np.arange(len(append_data))) - set(val_indx))
                 val_data.append(append_data[val_indx])
                 val_targets.append(append_targets[val_indx])
                 train_data.append(append_data[train_indx])
@@ -130,7 +145,8 @@ class DataManager(object):
         train_data, train_targets = np.concatenate(train_data), np.concatenate(
             train_targets
         )
-        val_data, val_targets = np.concatenate(val_data), np.concatenate(val_targets)
+        val_data, val_targets = np.concatenate(
+            val_data), np.concatenate(val_targets)
 
         return DummyDataset(
             train_data, train_targets, trsf, self.use_path
@@ -164,7 +180,8 @@ class DataManager(object):
         self._train_targets = _map_new_class_index(
             self._train_targets, self._class_order
         )
-        self._test_targets = _map_new_class_index(self._test_targets, self._class_order)
+        self._test_targets = _map_new_class_index(
+            self._test_targets, self._class_order)
 
     def _select(self, x, y, low_range, high_range):
         idxes = np.where(np.logical_and(y >= low_range, y < high_range))[0]
@@ -180,7 +197,8 @@ class DataManager(object):
             new_idxes = idxes[selected_idxes]
             new_idxes = np.sort(new_idxes)
         else:
-            new_idxes = np.where(np.logical_and(y >= low_range, y < high_range))[0]
+            new_idxes = np.where(np.logical_and(
+                y >= low_range, y < high_range))[0]
         return x[new_idxes], y[new_idxes]
 
     def getlen(self, index):

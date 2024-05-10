@@ -1,27 +1,33 @@
 import copy
 import logging
+
+import timm
 import torch
 from torch import nn
+
 from backbone.linears import CosineLinear
-import timm
+
 
 def get_backbone(args, pretrained=False):
     name = args["backbone_type"].lower()
-    
+
     if name == "pretrained_vit_b16_224" or name == "vit_base_patch16_224":
-        model = timm.create_model("vit_base_patch16_224",pretrained=True, num_classes=0)
+        model = timm.create_model(
+            "vit_base_patch16_224", pretrained=True, num_classes=0)
         model.out_dim = 768
         return model.eval()
     elif name == "pretrained_vit_b16_224_in21k" or name == "vit_base_patch16_224_in21k":
-        model = timm.create_model("vit_base_patch16_224_in21k",pretrained=True, num_classes=0)
+        model = timm.create_model(
+            "vit_base_patch16_224_in21k", pretrained=True, num_classes=0)
         model.out_dim = 768
-        return model.eval()    
+        return model.eval()
 
     elif '_ease' in name:
         ffn_num = args["ffn_num"]
-        if args["model_name"] == "ease" :
-            from backbone import vit_ease
+        if args["model_name"] == "ease":
             from easydict import EasyDict
+
+            from backbone import vit_ease
             tuning_config = EasyDict(
                 # AdaptFormer
                 ffn_adapt=True,
@@ -34,16 +40,16 @@ def get_backbone(args, pretrained=False):
                 # VPT related
                 vpt_on=False,
                 vpt_num=0,
-                _device = args["device"][0]
+                _device=args["device"][0]
             )
             if name == "vit_base_patch16_224_ease":
                 model = vit_ease.vit_base_patch16_224_ease(num_classes=0,
-                    global_pool=False, drop_path_rate=0.0, tuning_config=tuning_config)
-                model.out_dim=768
+                                                           global_pool=False, drop_path_rate=0.0, tuning_config=tuning_config)
+                model.out_dim = 768
             elif name == "vit_base_patch16_224_in21k_ease":
                 model = vit_ease.vit_base_patch16_224_in21k_ease(num_classes=0,
-                    global_pool=False, drop_path_rate=0.0, tuning_config=tuning_config)
-                model.out_dim=768
+                                                                 global_pool=False, drop_path_rate=0.0, tuning_config=tuning_config)
+                model.out_dim = 768
             else:
                 raise NotImplementedError("Unknown type {}".format(name))
             return model.eval()
@@ -113,6 +119,7 @@ class BaseNet(nn.Module):
 
         return self
 
+
 class EaseNet(BaseNet):
     def __init__(self, args, pretrained=True):
         super().__init__(args, pretrained)
@@ -120,17 +127,17 @@ class EaseNet(BaseNet):
         self.inc = args["increment"]
         self.init_cls = args["init_cls"]
         self._cur_task = -1
-        self.out_dim =  self.backbone.out_dim
+        self.out_dim = self.backbone.out_dim
         self.fc = None
         self.use_init_ptm = args["use_init_ptm"]
         self.alpha = args["alpha"]
         self.beta = args["beta"]
-            
+
     def freeze(self):
         for name, param in self.named_parameters():
             param.requires_grad = False
             # print(name)
-    
+
     @property
     def feature_dim(self):
         if self.use_init_ptm:
@@ -141,32 +148,35 @@ class EaseNet(BaseNet):
     # (proxy_fc = cls * dim)
     def update_fc(self, nb_classes):
         self._cur_task += 1
-        
+
         if self._cur_task == 0:
-            self.proxy_fc = self.generate_fc(self.out_dim, self.init_cls).to(self._device)
+            self.proxy_fc = self.generate_fc(
+                self.out_dim, self.init_cls).to(self._device)
         else:
-            self.proxy_fc = self.generate_fc(self.out_dim, self.inc).to(self._device)
-        
+            self.proxy_fc = self.generate_fc(
+                self.out_dim, self.inc).to(self._device)
+
         fc = self.generate_fc(self.feature_dim, nb_classes).to(self._device)
         fc.reset_parameters_to_zero()
-        
+
         if self.fc is not None:
             old_nb_classes = self.fc.out_features
             weight = copy.deepcopy(self.fc.weight.data)
             fc.sigma.data = self.fc.sigma.data
-            fc.weight.data[ : old_nb_classes, : -self.out_dim] = nn.Parameter(weight)
+            fc.weight.data[: old_nb_classes, : -
+                           self.out_dim] = nn.Parameter(weight)
         del self.fc
         self.fc = fc
-    
+
     def generate_fc(self, in_dim, out_dim):
         fc = CosineLinear(in_dim, out_dim)
         return fc
-    
+
     def extract_vector(self, x):
         return self.backbone(x)
 
     def forward(self, x, test=False):
-        if test == False:
+        if not test:
             x = self.backbone.forward(x, False)
             out = self.proxy_fc(x)
         else:
@@ -174,8 +184,9 @@ class EaseNet(BaseNet):
             if self.args["moni_adam"] or (not self.args["use_reweight"]):
                 out = self.fc(x)
             else:
-                out = self.fc.forward_reweight(x, cur_task=self._cur_task, alpha=self.alpha, init_cls=self.init_cls, inc=self.inc, use_init_ptm=self.use_init_ptm, beta=self.beta)
-            
+                out = self.fc.forward_reweight(x, cur_task=self._cur_task, alpha=self.alpha,
+                                               init_cls=self.init_cls, inc=self.inc, use_init_ptm=self.use_init_ptm, beta=self.beta)
+
         out.update({"features": x})
         return out
 

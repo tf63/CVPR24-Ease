@@ -1,4 +1,5 @@
 import os
+
 import numpy as np
 import torch
 
@@ -37,7 +38,8 @@ def accuracy(y_pred, y_true, nb_old, increment=10):
             np.logical_and(y_true >= class_id, y_true < class_id + increment)
         )[0]
         label = "{}-{}".format(
-            str(class_id).rjust(2, "0"), str(class_id + increment - 1).rjust(2, "0")
+            str(class_id).rjust(2, "0"), str(
+                class_id + increment - 1).rjust(2, "0")
         )
         all_acc[label] = np.around(
             (y_pred[idxes] == y_true[idxes]).sum() * 100 / len(idxes), decimals=2

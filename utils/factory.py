@@ -4,5 +4,5 @@ def get_model(model_name, args):
         from models.ease import Learner
     else:
         assert 0
-    
+
     return Learner(args)

@@ -1,5 +1,6 @@
 import numpy as np
 from torchvision import datasets, transforms
+
 from utils.toolkit import split_images_labels
 
 
@@ -28,8 +29,10 @@ class iCIFAR10(iData):
     class_order = np.arange(10).tolist()
 
     def download_data(self):
-        train_dataset = datasets.cifar.CIFAR10("../data", train=True, download=True)
-        test_dataset = datasets.cifar.CIFAR10("../data", train=False, download=True)
+        train_dataset = datasets.cifar.CIFAR10(
+            "../data", train=True, download=True)
+        test_dataset = datasets.cifar.CIFAR10(
+            "../data", train=False, download=True)
         self.train_data, self.train_targets = train_dataset.data, np.array(
             train_dataset.targets
         )
@@ -56,8 +59,10 @@ class iCIFAR100(iData):
     class_order = np.arange(100).tolist()
 
     def download_data(self):
-        train_dataset = datasets.cifar.CIFAR100("../data", train=True, download=True)
-        test_dataset = datasets.cifar.CIFAR100("../data", train=False, download=True)
+        train_dataset = datasets.cifar.CIFAR100(
+            "../data", train=True, download=True)
+        test_dataset = datasets.cifar.CIFAR100(
+            "../data", train=False, download=True)
         self.train_data, self.train_targets = train_dataset.data, np.array(
             train_dataset.targets
         )
@@ -65,13 +70,14 @@ class iCIFAR100(iData):
             test_dataset.targets
         )
 
+
 def build_transform_coda_prompt(is_train, args):
-    if is_train:        
+    if is_train:
         transform = [
             transforms.RandomResizedCrop(224),
             transforms.RandomHorizontalFlip(),
             transforms.ToTensor(),
-            transforms.Normalize((0.0,0.0,0.0), (1.0,1.0,1.0)),
+            transforms.Normalize((0.0, 0.0, 0.0), (1.0, 1.0, 1.0)),
         ]
         return transform
 
@@ -81,16 +87,17 @@ def build_transform_coda_prompt(is_train, args):
             transforms.Resize(256),
             transforms.CenterCrop(224),
             transforms.ToTensor(),
-            transforms.Normalize((0.0,0.0,0.0), (1.0,1.0,1.0)),
+            transforms.Normalize((0.0, 0.0, 0.0), (1.0, 1.0, 1.0)),
         ]
     else:
         t = [
             transforms.Resize(224),
             transforms.ToTensor(),
-            transforms.Normalize((0.0,0.0,0.0), (1.0,1.0,1.0)),
+            transforms.Normalize((0.0, 0.0, 0.0), (1.0, 1.0, 1.0)),
         ]
 
     return t
+
 
 def build_transform(is_train, args):
     input_size = 224
@@ -98,7 +105,7 @@ def build_transform(is_train, args):
     if is_train:
         scale = (0.05, 1.0)
         ratio = (3. / 4., 4. / 3.)
-        
+
         transform = [
             transforms.RandomResizedCrop(input_size, scale=scale, ratio=ratio),
             transforms.RandomHorizontalFlip(p=0.5),
@@ -110,13 +117,15 @@ def build_transform(is_train, args):
     if resize_im:
         size = int((256 / 224) * input_size)
         t.append(
-            transforms.Resize(size, interpolation=3),  # to maintain same ratio w.r.t. 224 images
+            # to maintain same ratio w.r.t. 224 images
+            transforms.Resize(size, interpolation=3),
         )
         t.append(transforms.CenterCrop(input_size))
     t.append(transforms.ToTensor())
-    
+
     # return transforms.Compose(t)
     return t
+
 
 class iCIFAR224(iData):
     def __init__(self, args):
@@ -137,14 +146,17 @@ class iCIFAR224(iData):
         self.class_order = np.arange(100).tolist()
 
     def download_data(self):
-        train_dataset = datasets.cifar.CIFAR100("../data", train=True, download=True)
-        test_dataset = datasets.cifar.CIFAR100("../data", train=False, download=True)
+        train_dataset = datasets.cifar.CIFAR100(
+            "../data", train=True, download=True)
+        test_dataset = datasets.cifar.CIFAR100(
+            "../data", train=False, download=True)
         self.train_data, self.train_targets = train_dataset.data, np.array(
             train_dataset.targets
         )
         self.test_data, self.test_targets = test_dataset.data, np.array(
             test_dataset.targets
         )
+
 
 class iImageNet1000(iData):
     use_path = True
@@ -159,7 +171,8 @@ class iImageNet1000(iData):
     ]
     common_trsf = [
         transforms.ToTensor(),
-        transforms.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225]),
+        transforms.Normalize(mean=[0.485, 0.456, 0.406], std=[
+                             0.229, 0.224, 0.225]),
     ]
 
     class_order = np.arange(1000).tolist()
@@ -172,7 +185,8 @@ class iImageNet1000(iData):
         train_dset = datasets.ImageFolder(train_dir)
         test_dset = datasets.ImageFolder(test_dir)
 
-        self.train_data, self.train_targets = split_images_labels(train_dset.imgs)
+        self.train_data, self.train_targets = split_images_labels(
+            train_dset.imgs)
         self.test_data, self.test_targets = split_images_labels(test_dset.imgs)
 
 
@@ -188,7 +202,8 @@ class iImageNet100(iData):
     ]
     common_trsf = [
         transforms.ToTensor(),
-        transforms.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225]),
+        transforms.Normalize(mean=[0.485, 0.456, 0.406], std=[
+                             0.229, 0.224, 0.225]),
     ]
 
     class_order = np.arange(1000).tolist()
@@ -201,7 +216,8 @@ class iImageNet100(iData):
         train_dset = datasets.ImageFolder(train_dir)
         test_dset = datasets.ImageFolder(test_dir)
 
-        self.train_data, self.train_targets = split_images_labels(train_dset.imgs)
+        self.train_data, self.train_targets = split_images_labels(
+            train_dset.imgs)
         self.test_data, self.test_targets = split_images_labels(test_dset.imgs)
 
 
@@ -231,16 +247,17 @@ class iImageNetR(iData):
         train_dset = datasets.ImageFolder(train_dir)
         test_dset = datasets.ImageFolder(test_dir)
 
-        self.train_data, self.train_targets = split_images_labels(train_dset.imgs)
+        self.train_data, self.train_targets = split_images_labels(
+            train_dset.imgs)
         self.test_data, self.test_targets = split_images_labels(test_dset.imgs)
 
 
 class iImageNetA(iData):
     use_path = True
-    
+
     train_trsf = build_transform(True, None)
     test_trsf = build_transform(False, None)
-    common_trsf = [    ]
+    common_trsf = []
 
     class_order = np.arange(200).tolist()
 
@@ -252,17 +269,17 @@ class iImageNetA(iData):
         train_dset = datasets.ImageFolder(train_dir)
         test_dset = datasets.ImageFolder(test_dir)
 
-        self.train_data, self.train_targets = split_images_labels(train_dset.imgs)
+        self.train_data, self.train_targets = split_images_labels(
+            train_dset.imgs)
         self.test_data, self.test_targets = split_images_labels(test_dset.imgs)
-
 
 
 class CUB(iData):
     use_path = True
-    
+
     train_trsf = build_transform(True, None)
     test_trsf = build_transform(False, None)
-    common_trsf = [    ]
+    common_trsf = []
 
     class_order = np.arange(200).tolist()
 
@@ -274,16 +291,17 @@ class CUB(iData):
         train_dset = datasets.ImageFolder(train_dir)
         test_dset = datasets.ImageFolder(test_dir)
 
-        self.train_data, self.train_targets = split_images_labels(train_dset.imgs)
+        self.train_data, self.train_targets = split_images_labels(
+            train_dset.imgs)
         self.test_data, self.test_targets = split_images_labels(test_dset.imgs)
 
 
 class objectnet(iData):
     use_path = True
-    
+
     train_trsf = build_transform(True, None)
     test_trsf = build_transform(False, None)
-    common_trsf = [    ]
+    common_trsf = []
 
     class_order = np.arange(200).tolist()
 
@@ -295,16 +313,17 @@ class objectnet(iData):
         train_dset = datasets.ImageFolder(train_dir)
         test_dset = datasets.ImageFolder(test_dir)
 
-        self.train_data, self.train_targets = split_images_labels(train_dset.imgs)
+        self.train_data, self.train_targets = split_images_labels(
+            train_dset.imgs)
         self.test_data, self.test_targets = split_images_labels(test_dset.imgs)
 
 
 class omnibenchmark(iData):
     use_path = True
-    
+
     train_trsf = build_transform(True, None)
     test_trsf = build_transform(False, None)
-    common_trsf = [    ]
+    common_trsf = []
 
     class_order = np.arange(300).tolist()
 
@@ -316,17 +335,17 @@ class omnibenchmark(iData):
         train_dset = datasets.ImageFolder(train_dir)
         test_dset = datasets.ImageFolder(test_dir)
 
-        self.train_data, self.train_targets = split_images_labels(train_dset.imgs)
+        self.train_data, self.train_targets = split_images_labels(
+            train_dset.imgs)
         self.test_data, self.test_targets = split_images_labels(test_dset.imgs)
-
 
 
 class vtab(iData):
     use_path = True
-    
+
     train_trsf = build_transform(True, None)
     test_trsf = build_transform(False, None)
-    common_trsf = [    ]
+    common_trsf = []
 
     class_order = np.arange(50).tolist()
 
@@ -341,5 +360,6 @@ class vtab(iData):
         print(train_dset.class_to_idx)
         print(test_dset.class_to_idx)
 
-        self.train_data, self.train_targets = split_images_labels(train_dset.imgs)
+        self.train_data, self.train_targets = split_images_labels(
+            train_dset.imgs)
         self.test_data, self.test_targets = split_images_labels(test_dset.imgs)
