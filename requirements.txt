@@ -1,0 +1,4 @@
+# pytorch-lightning==2.2.3
+# wandb==0.16.6
+# click==8.1.7
+timm==0.6.12
