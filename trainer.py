@@ -1,13 +1,11 @@
 import copy
-import logging
-import os
-import sys
 
 import torch
 
 from utils import factory
 from utils.data_manager import DataManager
 from utils.toolkit import count_parameters
+from utils.logger import WandbLogger, BasicLogger
 
 
 def train(args):
@@ -21,35 +19,15 @@ def train(args):
 
 
 def _train(args):
-
-    init_cls = 0 if args["init_cls"] == args["increment"] else args["init_cls"]
-    logs_name = "logs/{}/{}/{}/{}".format(
-        args["model_name"], args["dataset"], init_cls, args['increment'])
-
-    if not os.path.exists(logs_name):
-        os.makedirs(logs_name)
-
-    logfilename = "logs/{}/{}/{}/{}/{}_{}_{}".format(
-        args["model_name"],
-        args["dataset"],
-        init_cls,
-        args["increment"],
-        args["prefix"],
-        args["seed"],
-        args["backbone_type"],
-    )
-    logging.basicConfig(
-        level=logging.INFO,
-        format="%(asctime)s [%(filename)s] => %(message)s",
-        handlers=[
-            logging.FileHandler(filename=logfilename + ".log"),
-            logging.StreamHandler(sys.stdout),
-        ],
-    )
-
     _set_random(args["seed"])
     _set_device(args)
-    print_args(args)
+
+    if args["logger"] == "wandb":
+        logger = WandbLogger(args)
+    else:
+        logger = BasicLogger(args)
+
+    logger.print_args()
 
     data_manager = DataManager(
         args["dataset"],
@@ -66,8 +44,8 @@ def _train(args):
 
     cnn_curve, nme_curve = {"top1": [], "top5": []}, {"top1": [], "top5": []}
     for task in range(data_manager.nb_tasks):
-        logging.info("All params: {}".format(count_parameters(model._network)))
-        logging.info(
+        logger.info("All params: {}".format(count_parameters(model._network)))
+        logger.info(
             "Trainable params: {}".format(
                 count_parameters(model._network, True))
         )
@@ -76,8 +54,8 @@ def _train(args):
         model.after_task()
 
         if nme_accy is not None:
-            logging.info("CNN: {}".format(cnn_accy["grouped"]))
-            logging.info("NME: {}".format(nme_accy["grouped"]))
+            logger.info("CNN: {}".format(cnn_accy["grouped"]))
+            logger.info("NME: {}".format(nme_accy["grouped"]))
 
             cnn_curve["top1"].append(cnn_accy["top1"])
             cnn_curve["top5"].append(cnn_accy["top5"])
@@ -85,34 +63,31 @@ def _train(args):
             nme_curve["top1"].append(nme_accy["top1"])
             nme_curve["top5"].append(nme_accy["top5"])
 
-            logging.info("CNN top1 curve: {}".format(cnn_curve["top1"]))
-            logging.info("CNN top5 curve: {}".format(cnn_curve["top5"]))
-            logging.info("NME top1 curve: {}".format(nme_curve["top1"]))
-            logging.info("NME top5 curve: {}\n".format(nme_curve["top5"]))
+            data = {"class": (task + 1) * args["increment"],
+                    "cnn_top1": cnn_accy["top1"], "cnn_top5": cnn_accy["top5"],
+                    "nme_top1": nme_accy["top1"], "nme_top5": nme_accy["top5"],
+                    "cnn_average_acc": sum(cnn_curve["top1"]) / len(cnn_curve["top1"]),
+                    "nme_average_acc": sum(nme_curve["top1"]) / len(nme_curve["top1"])
+                    }
 
-            print('Average Accuracy (CNN):', sum(
-                cnn_curve["top1"]) / len(cnn_curve["top1"]))
-            print('Average Accuracy (NME):', sum(
-                nme_curve["top1"]) / len(nme_curve["top1"]))
+            logger.log(data)
+            logger.info(f"Average Accuracy (CNN): {data['cnn_average_acc']}")
+            logger.info(f"Average Accuracy (NME): {data['nme_average_acc']}")
 
-            logging.info("Average Accuracy (CNN): {}".format(
-                sum(cnn_curve["top1"]) / len(cnn_curve["top1"])))
-            logging.info("Average Accuracy (NME): {}".format(
-                sum(nme_curve["top1"]) / len(nme_curve["top1"])))
         else:
-            logging.info("No NME accuracy.")
-            logging.info("CNN: {}".format(cnn_accy["grouped"]))
+            logger.info("No NME accuracy.")
+            logger.info("CNN: {}".format(cnn_accy["grouped"]))
 
             cnn_curve["top1"].append(cnn_accy["top1"])
             cnn_curve["top5"].append(cnn_accy["top5"])
 
-            logging.info("CNN top1 curve: {}".format(cnn_curve["top1"]))
-            logging.info("CNN top5 curve: {}\n".format(cnn_curve["top5"]))
+            data = {"class": (task + 1) * args["increment"],
+                    "cnn_top1": cnn_accy["top1"], "cnn_top5": cnn_accy["top5"],
+                    "cnn_average_acc": sum(cnn_curve["top1"]) / len(cnn_curve["top1"]),
+                    }
 
-            print('Average Accuracy (CNN):', sum(
-                cnn_curve["top1"]) / len(cnn_curve["top1"]))
-            logging.info("Average Accuracy (CNN): {} \n".format(
-                sum(cnn_curve["top1"]) / len(cnn_curve["top1"])))
+            logger.log(data)
+            logger.info(f"Average Accuracy (CNN): {data['cnn_average_acc']}")
 
 
 def _set_device(args):
@@ -136,8 +111,3 @@ def _set_random(seed=1):
     torch.cuda.manual_seed_all(seed)
     torch.backends.cudnn.deterministic = True
     torch.backends.cudnn.benchmark = False
-
-
-def print_args(args):
-    for key, value in args.items():
-        logging.info("{}: {}".format(key, value))
