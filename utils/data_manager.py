@@ -232,7 +232,7 @@ def _map_new_class_index(y, order):
 
 
 def _get_idata(dataset_name, args=None):
-    name = dataset_name.lower(args)
+    name = dataset_name.lower()
     if name == "cifar10":
         return iCIFAR10(args)
     elif name == "cifar100":

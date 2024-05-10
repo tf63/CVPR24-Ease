@@ -24,8 +24,8 @@ def setup_parser():
         description='Reproduce of multiple pre-trained incremental learning algorthms.')
     parser.add_argument('--config', type=str, default='./exps/simplecil.json',
                         help='Json file of settings.')
-    parser.add_argument("--logger", type=str, default="basic")
-    parser.add_argument("--data_dir", type=str, default="./data")
+    parser.add_argument("--logger", type=str, default="basic", help="logger type. [basic (default) | wandb]")
+    parser.add_argument("--data_dir", type=str, default="./data", help="dataset directory.")
     return parser
 
 

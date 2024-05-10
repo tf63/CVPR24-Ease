@@ -22,15 +22,6 @@ def _train(args):
     _set_random(args["seed"])
     _set_device(args)
 
-    if args["logger"] == "wandb":
-        logger = WandbLogger(args)
-    elif args["logger"] == "basic":
-        logger = BasicLogger(args)
-    else:
-        raise ValueError("Invalid logger type.")
-
-    logger.print_args()
-
     data_manager = DataManager(
         dataset_name=args["dataset"],
         shuffle=args["shuffle"],
@@ -42,7 +33,17 @@ def _train(args):
 
     args["nb_classes"] = data_manager.nb_classes  # update args
     args["nb_tasks"] = data_manager.nb_tasks
+
     model = factory.get_model(args["model_name"], args)
+
+    if args["logger"] == "wandb":
+        logger = WandbLogger(args)
+    elif args["logger"] == "basic":
+        logger = BasicLogger(args)
+    else:
+        raise ValueError("Invalid logger type.")
+
+    logger.print_args()
 
     cnn_curve, nme_curve = {"top1": [], "top5": []}, {"top1": [], "top5": []}
     for task in range(data_manager.nb_tasks):

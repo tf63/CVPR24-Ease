@@ -1,7 +1,10 @@
-# pytorch-lightning==2.2.3
-wandb==0.17.0
-# click==8.1.7
+# required
 timm==0.6.12
+scipy==1.10.1
+easydict==1.13
+
+# development
+wandb==0.17.0
 pyproject-flake8==7.0.0
 autopep8==2.1.0
 isort==5.13.2

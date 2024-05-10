@@ -12,14 +12,14 @@ class Logger:
                                       args["model_name"],
                                       args["dataset"],
                                       f"{self.init_cls}",
-                                      args['increment']
+                                      f"{args['increment']}"
                                       )
 
         self.logfilename = os.path.join("logs",
                                         args["model_name"],
                                         args["dataset"],
                                         f"{self.init_cls}",
-                                        args["increment"],
+                                        f"{args['increment']}",
                                         f"{args['prefix']}_{args['seed']}_{args['backbone_type']}"
                                         )
         self.args = args
